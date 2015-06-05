@@ -11,7 +11,7 @@ RUN a2enmod headers rewrite && \
     apt-get install -y libpng12-dev && \
     docker-php-ext-install gd
 
-ADD https://github.com/SSilence/selfoss/releases/download/2.12/selfoss-2.12.zip /tmp/
+ADD https://github.com/SSilence/selfoss/archive/master.zip /tmp/
 RUN unzip /tmp/selfoss-*.zip -d /var/www/html && \
     rm /tmp/selfoss-*.zip /var/www/html/index.html && \
     ln -s /var/www/html/data/config.ini /var/www/html && \
