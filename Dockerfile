@@ -1,23 +1,35 @@
-FROM php:5.6-apache
-MAINTAINER Jens Erat <email@jenserat.de>
+FROM ubuntu
 
-# Remove SUID programs
-RUN for i in `find / -perm +6000 -type f`; do chmod a-s $i; done
+MAINTAINER Niels Theen <werwofl@googlemail.com>
 
-# selfoss requirements: mod-headers, mod-rewrite, gd
-RUN a2enmod headers rewrite && \
-    apt-get update && \
-    apt-get install -y unzip && \
-    apt-get install -y libpng12-dev && \
-    docker-php-ext-install gd
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
+    php5 php5-pgsql php5-fpm php-apc php5-curl php5-cli supervisor ruby unzip python wget nginx php5-sqlite php5-mysql php5-gd\
+    && apt-get clean
 
-ADD https://github.com/SSilence/selfoss/archive/master.zip /tmp/
-RUN unzip /tmp/master.zip -d /var/www/html && \
-    rm /tmp/master.zip /var/www/html/index.html && \
-    ln -s /app/config/config.ini /var/www/html && \
-    chown -R www-data:www-data /var/www/html
+# Get release 2.12 from the side
+ADD https://github.com/SSilence/selfoss/releases/download/2.13/selfoss-2.13.zip /selfoss-2.13.zip
+RUN unzip selfoss-2.13.zip -d /var/www
 
-# Extend maximum execution time, so /refresh does not time out
-COPY php.ini /usr/local/etc/php/
 
-VOLUME /app/config
+WORKDIR /var/www
+
+# Make css writeable
+RUN chmod +rwx data/cache 
+RUN chmod +rwx data/favicons 
+RUN chmod +rwx data/logs
+RUN chmod +rwx data/thumbnails
+RUN chmod +rwx data/sqlite
+RUN chmod +rwx public
+RUN chmod +rwx index.php
+RUN ln -s /app/config/config.ini /var/www/config.ini
+
+# add selfoss as the only nginx site
+ADD selfoss.nginx.conf /etc/nginx/sites-available/selfoss
+RUN ln -s /etc/nginx/sites-available/selfoss /etc/nginx/sites-enabled/selfoss
+RUN rm /etc/nginx/sites-enabled/default
+
+RUN chown www-data:www-data -R /var/www
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+CMD supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 80
