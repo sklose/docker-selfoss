@@ -12,12 +12,12 @@ RUN a2enmod headers rewrite && \
     docker-php-ext-install gd
 
 ADD https://github.com/SSilence/selfoss/archive/master.zip /tmp/
-RUN unzip /tmp/selfoss-*.zip -d /var/www/html && \
-    rm /tmp/selfoss-*.zip /var/www/html/index.html && \
-    ln -s /var/www/html/data/config.ini /var/www/html && \
+RUN unzip /tmp/master.zip -d /var/www/html && \
+    rm /tmp/master.zip /var/www/html/index.html && \
+    ln -s /app/config/config.ini /var/www/html && \
     chown -R www-data:www-data /var/www/html
 
 # Extend maximum execution time, so /refresh does not time out
 COPY php.ini /usr/local/etc/php/
 
-VOLUME /var/www/html/data
+VOLUME /app/config
